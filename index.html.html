@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro Manutenzioni</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f0ede8;min-height:100vh;padding:16px;}
+.screen{background:#fff;border-radius:12px;max-width:420px;margin:0 auto;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.topbar{background:#8B1A1A;padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.topbar svg{flex-none;color:#fff;}
+.topbar-title{color:#fff;font-size:15px;font-weight:600;flex:1;}
+.topbar-date{color:rgba(255,255,255,0.75);font-size:12px;}
+.form-body{padding:16px;display:flex;flex-direction:column;gap:16px;}
+.field-label{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.field-label span{color:#8B1A1A;}
+select,textarea,input[type=text]{width:100%;font-size:14px;padding:10px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none;font-family:inherit;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;}
+textarea{resize:none;line-height:1.5;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#8B1A1A;}
+.tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tipo-btn{padding:10px 8px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#666;font-size:12px;text-align:center;cursor:pointer;line-height:1.3;font-family:inherit;}
+.tipo-btn.sel-ord{background:#E6F1FB;border-color:#185FA5;color:#0C447C;}
+.tipo-btn.sel-str{background:#FCEBEB;border-color:#A32D2D;color:#791F1F;}
+.tipo-btn.sel-pul{background:#EAF3DE;border-color:#3B6D11;color:#27500A;}
+.tipo-btn.sel-ctrl{background:#FAEEDA;border-color:#854F0B;color:#633806;}
+.tipo-btn.sel-sost{background:#EEEDFE;border-color:#534AB7;color:#3C3489;}
+.search-wrap{position:relative;}
+.search-wrap input{padding-left:34px;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#aaa;pointer-events:none;}
+.imp-list{border:1px solid #ddd;border-radius:8px;max-height:180px;overflow-y:auto;margin-top:4px;display:none;background:#fff;}
+.imp-list.open{display:block;}
+.imp-item{padding:10px 12px;font-size:13px;color:#1a1a1a;border-bottom:1px solid #f0ede8;cursor:pointer;line-height:1.3;}
+.imp-item:last-child{border-bottom:none;}
+.imp-item:hover{background:#f7f5f2;}
+.imp-item .imp-cat{font-size:11px;color:#999;margin-top:1px;}
+.imp-selected{background:#f7f5f2;border:1px solid #ddd;border-radius:8px;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.imp-clear{color:#aaa;font-size:18px;line-height:1;}
+.ora-row{display:flex;gap:8px;}
+.ora-row>div{flex:1;}
+.char-count{font-size:11px;color:#bbb;text-align:right;margin-top:3px;}
+.err-border{border-color:#A32D2D!important;}
+.err-msg{font-size:11px;color:#791F1F;margin-top:4px;}
+.tempo-row{display:flex;gap:8px;align-items:center;}
+.tempo-row input{width:70px;text-align:center;flex:none;}
+.tempo-row span{font-size:13px;color:#666;white-space:nowrap;}
+.tempo-row select{flex:1;}
+.igiene-box{background:#f7f5f2;border-radius:8px;padding:14px;display:flex;gap:12px;align-items:flex-start;border:1px solid #e8e4df;}
+.igiene-box input[type=checkbox]{width:20px;height:20px;min-width:20px;margin-top:2px;accent-color:#8B1A1A;cursor:pointer;}
+.igiene-box label{font-size:13px;color:#1a1a1a;line-height:1.5;cursor:pointer;}
+.btn-submit{width:100%;padding:13px;background:#8B1A1A;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;font-family:inherit;}
+.btn-submit:disabled{background:#bbb;cursor:not-allowed;}
+.spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.success-screen{display:none;padding:36px 20px;text-align:center;flex-direction:column;align-items:center;gap:14px;}
+.success-icon{width:60px;height:60px;border-radius:50%;background:#EAF3DE;display:flex;align-items:center;justify-content:center;}
+.success-title{font-size:17px;font-weight:600;color:#1a1a1a;}
+.success-sub{font-size:13px;color:#555;line-height:1.6;}
+.btn-nuovo{padding:10px 22px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;font-family:inherit;margin-top:4px;}
+.error-box{background:#FCEBEB;border:1px solid #A32D2D;border-radius:8px;padding:12px 14px;font-size:13px;color:#791F1F;display:none;margin-top:-8px;}
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="topbar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    <span class="topbar-title">Registro manutenzioni</span>
+    <span class="topbar-date" id="topDate"></span>
+  </div>
+
+  <div class="form-body" id="formBody">
+
+    <div>
+      <div class="field-label">Operatore <span>*</span></div>
+      <select id="selOp">
+        <option value="">— seleziona —</option>
+        <option>Moscatelli Massimo</option>
+        <option>Macchi Massimiliano</option>
+        <option>Nurchi Mirco</option>
+        <option>Guidi Massimiliano</option>
+        <option>Fiorini Andrea</option>
+        <option>Magini Simone</option>
+      </select>
+      <div class="err-msg" id="errOp" style="display:none;">Campo obbligatorio</div>
+    </div>
+
+    <div>
+      <div class="field-label">Data e ora intervento <span>*</span></div>
+      <div class="ora-row">
+        <div><input type="text" id="inData" placeholder="gg/mm/aaaa" maxlength="10" oninput="fmtData(this)"></div>
+        <div><input type="text" id="inOra" placeholder="hh:mm" maxlength="5" oninput="fmtOra(this)"></div>
+      </div>
+      <div class="err-msg" id="errData" style="display:none;">Data o ora non valida</div>
+    </div>
+
+    <div>
+      <div class="field-label">Impianto / Macchina / Attrezzatura <span>*</span></div>
+      <div id="impSelectedWrap" style="display:none;">
+        <div class="imp-selected" onclick="clearImp()">
+          <div>
+            <div id="impSelName" style="font-size:13px;font-weight:500;"></div>
+            <div id="impSelId" style="font-size:11px;color:#999;margin-top:2px;"></div>
+          </div>
+          <span class="imp-clear">&#x2715;</span>
+        </div>
+      </div>
+      <div id="impSearchWrap">
+        <div class="search-wrap">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="impSearch" placeholder="Cerca per nome o codice..." oninput="filterImp()" onfocus="openList()">
+        </div>
+        <div class="imp-list" id="impList"></div>
+      </div>
+      <div class="err-msg" id="errImp" style="display:none;">Seleziona un impianto</div>
+    </div>
+
+    <div>
+      <div class="field-label">Tipo di intervento <span>*</span></div>
+      <div class="tipo-grid">
+        <button class="tipo-btn" data-tipo="ord" onclick="selTipo(this)">&#128197; Ordinaria / Programmata</button>
+        <button class="tipo-btn" data-tipo="str" onclick="selTipo(this)">&#9888; Straordinaria / Guasto</button>
+        <button class="tipo-btn" data-tipo="pul" onclick="selTipo(this)">&#128167; Pulizia / Sanificazione</button>
+        <button class="tipo-btn" data-tipo="ctrl" onclick="selTipo(this)">&#128065; Controllo / Ispezione</button>
+        <button class="tipo-btn" data-tipo="sost" onclick="selTipo(this)" style="grid-column:1/-1;">&#128260; Sostituzione componenti</button>
+      </div>
+      <div class="err-msg" id="errTipo" style="display:none;">Seleziona il tipo di intervento</div>
+    </div>
+
+    <div>
+      <div class="field-label">Descrizione intervento <span>*</span></div>
+      <textarea id="taDesc" placeholder="Descrivi l'intervento effettuato..." maxlength="500" oninput="countChars()" rows="4"></textarea>
+      <div class="char-count"><span id="charCount">0</span>/500</div>
+      <div class="err-msg" id="errDesc" style="display:none;">Campo obbligatorio (min. 10 caratteri)</div>
+    </div>
+
+    <div>
+      <div class="field-label">Tempo impiegato <span>*</span></div>
+      <div class="tempo-row">
+        <input type="text" id="inOre" placeholder="0" maxlength="2" oninput="this.value=this.value.replace(/\D/g,'')">
+        <span>ore</span>
+        <select id="selMin">
+          <option value="0">00 min</option>
+          <option value="15">15 min</option>
+          <option value="30">30 min</option>
+          <option value="45">45 min</option>
+        </select>
+      </div>
+      <div class="err-msg" id="errTempo" style="display:none;">Inserisci almeno 15 minuti</div>
+    </div>
+
+    <div>
+      <div class="field-label">Note aggiuntive</div>
+      <textarea id="taNote" placeholder="Ricambi utilizzati, anomalie residue, ecc." rows="2" maxlength="300"></textarea>
+    </div>
+
+    <div class="igiene-box">
+      <input type="checkbox" id="chkIgiene">
+      <label for="chkIgiene">Ripristino delle corrette condizioni igienico-sanitarie effettuato dopo l'intervento</label>
+    </div>
+
+    <div class="error-box" id="errorBox">
+      ⚠️ Errore durante il salvataggio. Controlla la connessione e riprova.
+    </div>
+
+    <button class="btn-submit" id="btnSubmit" onclick="submitForm()">
+      <div class="spinner" id="spinner"></div>
+      <span id="btnLabel">&#128190; Registra intervento</span>
+    </button>
+
+  </div>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#27500A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="success-title">Intervento registrato ✓</div>
+    <div class="success-sub" id="successDetail"></div>
+    <button class="btn-nuovo" onclick="resetForm()">+ Nuovo intervento</button>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwy7-MPGBoov2J2xIoOvKNtTbLQI7rQd4htwkXrCyoJADqTZ8iovewGhEmfkNPaSDXkkA/exec';
+
+const IMPIANTI=[
+  {cat:"Vinificatore/Serbatoio",id:"V.1"},{cat:"Vinificatore/Serbatoio",id:"V.2"},{cat:"Vinificatore/Serbatoio",id:"V.3"},{cat:"Vinificatore/Serbatoio",id:"V.4"},{cat:"Vinificatore/Serbatoio",id:"V.5"},
+  {cat:"Vinificatore/Serbatoio",id:"V.6"},{cat:"Vinificatore/Serbatoio",id:"V.7"},{cat:"Vinificatore/Serbatoio",id:"V.8"},{cat:"Vinificatore/Serbatoio",id:"V.9"},{cat:"Vinificatore/Serbatoio",id:"V.10"},
+  {cat:"Vinificatore/Serbatoio",id:"V.11"},{cat:"Vinificatore/Serbatoio",id:"V.12"},{cat:"Vinificatore/Serbatoio",id:"V.13"},{cat:"Vinificatore/Serbatoio",id:"V.14"},{cat:"Vinificatore/Serbatoio",id:"V.15"},
+  {cat:"Vinificatore/Serbatoio",id:"V.16"},{cat:"Vinificatore/Serbatoio",id:"V.17"},{cat:"Vinificatore/Serbatoio",id:"V.18"},{cat:"Vinificatore/Serbatoio",id:"V.19"},{cat:"Vinificatore/Serbatoio",id:"V.20"},
+  {cat:"Vinificatore/Serbatoio",id:"V.21"},{cat:"Vinificatore/Serbatoio",id:"V.22"},{cat:"Vinificatore/Serbatoio",id:"V.23"},{cat:"Vinificatore/Serbatoio",id:"V.24"},{cat:"Vinificatore/Serbatoio",id:"V.25"},
+  {cat:"Vinificatore/Serbatoio",id:"V.26"},{cat:"Vinificatore/Serbatoio",id:"V.27"},{cat:"Vinificatore/Serbatoio",id:"V.28"},{cat:"Vinificatore/Serbatoio",id:"V.29"},{cat:"Vinificatore/Serbatoio",id:"V.30"},
+  {cat:"Vinificatore/Serbatoio",id:"V.31"},{cat:"Vinificatore/Serbatoio",id:"V.32"},{cat:"Vinificatore/Serbatoio",id:"V.33"},{cat:"Vinificatore/Serbatoio",id:"V.34"},{cat:"Vinificatore/Serbatoio",id:"V.35"},
+  {cat:"Vinificatore/Serbatoio",id:"V.36"},{cat:"Vinificatore/Serbatoio",id:"V.37"},{cat:"Vinificatore/Serbatoio",id:"V.38"},{cat:"Vinificatore/Serbatoio",id:"V.39"},{cat:"Vinificatore/Serbatoio",id:"V.40"},
+  {cat:"Vinificatore/Serbatoio",id:"V.41"},{cat:"Vinificatore/Serbatoio",id:"V.42"},{cat:"Serbatoio feccia",id:"V.43"},{cat:"Serbatoio feccia",id:"V.44"},{cat:"Vinificatore/Serbatoio",id:"V.45"},
+  {cat:"Vinificatore/Serbatoio",id:"V.46"},{cat:"Vinificatore/Serbatoio",id:"V.47"},{cat:"Vinificatore/Serbatoio",id:"V.48"},{cat:"Vinificatore/Serbatoio",id:"V.51"},{cat:"Vinificatore/Serbatoio",id:"V.52"},
+  {cat:"Vinificatore/Serbatoio",id:"V.53"},{cat:"Vinificatore/Serbatoio",id:"V.54"},{cat:"Vinificatore/Serbatoio",id:"V.55"},{cat:"Vinificatore/Serbatoio",id:"V.56"},{cat:"Vinificatore/Serbatoio",id:"V.57"},
+  {cat:"Vinificatore/Serbatoio",id:"V.58"},{cat:"Vinificatore/Serbatoio",id:"V.59"},{cat:"Vinificatore/Serbatoio",id:"V.60"},{cat:"Vinificatore/Serbatoio",id:"V.61"},{cat:"Vinificatore/Serbatoio",id:"V.62"},
+  {cat:"Vinificatore/Serbatoio",id:"V.63"},{cat:"Vinificatore/Serbatoio",id:"V.64"},{cat:"Vinificatore/Serbatoio",id:"V.65"},{cat:"Vinificatore/Serbatoio",id:"V.66"},{cat:"Vinificatore/Serbatoio",id:"V.67"},
+  {cat:"Vinificatore/Serbatoio",id:"V.68"},{cat:"Vinificatore/Serbatoio",id:"V.69"},{cat:"Vinificatore/Serbatoio",id:"V.70"},{cat:"Vinificatore/Serbatoio",id:"V.71"},{cat:"Vinificatore/Serbatoio",id:"V.72"},
+  {cat:"Vinificatore/Serbatoio",id:"V.73"},{cat:"Vinificatore/Serbatoio",id:"V.75"},{cat:"Vinificatore/Serbatoio",id:"V.76"},{cat:"Vinificatore/Serbatoio",id:"V.77"},{cat:"Vinificatore/Serbatoio",id:"V.78"},
+  {cat:"Serbatoio vetroresina",id:"V.79"},{cat:"Vinificatore/Serbatoio",id:"V.80"},{cat:"Vinificatore/Serbatoio",id:"V.81"},{cat:"Vinificatore/Serbatoio",id:"V.82"},{cat:"Vinificatore/Serbatoio",id:"V.83"},
+  {cat:"Vinificatore/Serbatoio",id:"V.84"},{cat:"Vinificatore/Serbatoio",id:"V.85"},{cat:"Vinificatore/Serbatoio",id:"V.86"},{cat:"Vinificatore/Serbatoio",id:"V.87"},{cat:"Vinificatore/Serbatoio",id:"V.88"},
+  {cat:"Vinificatore/Serbatoio",id:"V.89"},{cat:"Vinificatore/Serbatoio",id:"V.90"},{cat:"Vinificatore/Serbatoio",id:"V.91"},{cat:"Vinificatore/Serbatoio",id:"V.92"},{cat:"Vinificatore/Serbatoio",id:"V.93"},
+  {cat:"Vinificatore/Serbatoio",id:"V.94"},{cat:"Vinificatore/Serbatoio",id:"V.95"},{cat:"Vinificatore/Serbatoio",id:"V.96"},{cat:"Vinificatore/Serbatoio",id:"V.97"},{cat:"Vinificatore/Serbatoio",id:"V.98"},
+  {cat:"Vinificatore/Serbatoio",id:"V.99"},{cat:"Vinificatore/Serbatoio",id:"V.100"},{cat:"Vinificatore/Serbatoio",id:"V.101"},{cat:"Vinificatore/Serbatoio",id:"V.102"},{cat:"Vinificatore/Serbatoio",id:"V.103"},
+  {cat:"Vinificatore/Serbatoio",id:"V.104"},{cat:"Vinificatore PuntaRossa",id:"V.105"},{cat:"Vinificatore PuntaRossa",id:"V.106"},{cat:"Vinificatore PuntaRossa",id:"V.107"},{cat:"Vinificatore RotoCap",id:"V.108"},
+  {cat:"Vinificatore RotoCap",id:"V.109"},{cat:"Vinificatore RotoCap",id:"V.110"},{cat:"Vinificatore PuntaRossa",id:"V.111"},{cat:"Vinificatore PuntaRossa",id:"V.112"},{cat:"Vinificatore PuntaRossa",id:"V.113"},
+  {cat:"Vinificatore PuntaRossa",id:"V.114"},{cat:"Vinificatore PuntaRossa",id:"V.115"},{cat:"Vinificatore PuntaRossa",id:"V.116"},{cat:"Vinificatore PuntaRossa",id:"V.117"},{cat:"Vinificatore PuntaRossa",id:"V.118"},
+  {cat:"Vinificatore PuntaRossa",id:"V.119"},{cat:"Vinificatore PuntaRossa",id:"V.120"},{cat:"Vinificatore PuntaRossa",id:"V.121"},{cat:"Vinificatore PuntaRossa",id:"V.122"},{cat:"Vinificatore/Serbatoio",id:"V.123"},
+  {cat:"Vinificatore/Serbatoio",id:"V.124"},{cat:"Vinificatore/Serbatoio",id:"V.125"},{cat:"Vinificatore/Serbatoio",id:"V.126"},{cat:"Vinificatore/Serbatoio",id:"V.127"},{cat:"Vinificatore/Serbatoio",id:"V.128"},
+  {cat:"Vinificatore RotoCap",id:"V.130"},{cat:"Vinificatore RotoCap",id:"V.131"},{cat:"Vinificatore RotoCap",id:"V.132"},{cat:"Vinificatore RotoCap",id:"V.133"},
+  {cat:"Vinificatore AirMix",id:"V.141"},{cat:"Vinificatore AirMix",id:"V.142"},{cat:"Vinificatore AirMix",id:"V.143"},{cat:"Vinificatore AirMix",id:"V.144"},{cat:"Vinificatore AirMix",id:"V.145"},
+  {cat:"Vinificatore AirMix",id:"V.146"},{cat:"Vinificatore AirMix",id:"V.147"},{cat:"Vinificatore AirMix",id:"V.148"},{cat:"Vinificatore AirMix",id:"V.149"},{cat:"Vinificatore AirMix",id:"V.150"},
+  {cat:"Vinificatore AirMix",id:"V.151"},{cat:"Vinificatore AirMix",id:"V.152"},{cat:"Vinificatore AirMix",id:"V.153"},{cat:"Vinificatore AirMix",id:"V.154"},
+  {cat:"Vinificatore/Serbatoio",id:"V.155"},{cat:"Vinificatore/Serbatoio",id:"V.156"},{cat:"Vinificatore/Serbatoio",id:"V.157"},{cat:"Vinificatore/Serbatoio",id:"V.158"},{cat:"Vinificatore/Serbatoio",id:"V.159"},
+  {cat:"Vinificatore/Serbatoio",id:"V.160"},{cat:"Vinificatore/Serbatoio",id:"V.161"},{cat:"Vinificatore/Serbatoio",id:"V.162"},{cat:"Autoclave",id:"V.163"},{cat:"Autoclave",id:"V.164"},
+  {cat:"Serbatoio sovrapposto",id:"V.165"},{cat:"Serbatoio sovrapposto",id:"V.166"},{cat:"Serbatoio sovrapposto",id:"V.167"},{cat:"Serbatoio sovrapposto",id:"V.168"},{cat:"Serbatoio sovrapposto",id:"V.169"},
+  {cat:"Serbatoio sovrapposto",id:"V.170"},{cat:"Vinificatore/Serbatoio",id:"V.171"},{cat:"Vinificatore/Serbatoio",id:"V.172"},{cat:"Vinificatore/Serbatoio",id:"V.173"},
+  {cat:"Serbatoio sovrapposto",id:"V.174"},{cat:"Serbatoio sovrapposto",id:"V.175"},{cat:"Serbatoio sovrapposto",id:"V.176"},{cat:"Serbatoio sovrapposto",id:"V.177"},{cat:"Serbatoio sovrapposto",id:"V.178"},
+  {cat:"Serbatoio sovrapposto",id:"V.179"},{cat:"Serbatoio sovrapposto",id:"V.180"},{cat:"Serbatoio sovrapposto",id:"V.181"},{cat:"Serbatoio sovrapposto",id:"V.182"},{cat:"Serbatoio sovrapposto",id:"V.183"},
+  {cat:"Vinificatore/Serbatoio",id:"V.184"},{cat:"Vinificatore/Serbatoio",id:"V.185"},{cat:"Vinificatore/Serbatoio",id:"V.186"},{cat:"Vinificatore/Serbatoio",id:"V.187"},{cat:"Vinificatore/Serbatoio",id:"V.188"},
+  {cat:"Vinificatore/Serbatoio",id:"V.189"},{cat:"Vinificatore/Serbatoio",id:"V.190"},{cat:"Vinificatore/Serbatoio",id:"V.191"},{cat:"Vinificatore/Serbatoio",id:"V.192"},{cat:"Vinificatore/Serbatoio",id:"V.193"},
+  {cat:"Autoclave",id:"V.198"},{cat:"Autoclave",id:"V.199"},{cat:"Serbatoio in legno",id:"V.200"},{cat:"Serbatoio in legno",id:"V.201"},{cat:"Serbatoio in legno",id:"V.202"},{cat:"Serbatoio in legno",id:"V.203"},
+  {cat:"Vinificatore/Serbatoio",id:"V.204"},{cat:"Vinificatore/Serbatoio",id:"V.205"},{cat:"Vinificatore/Serbatoio",id:"V.206"},{cat:"Vinificatore/Serbatoio",id:"V.207"},{cat:"Vinificatore/Serbatoio",id:"V.208"},
+  {cat:"Serbatoio sovrapposto",id:"V.209"},{cat:"Serbatoio sovrapposto",id:"V.210"},{cat:"Serbatoio sovrapposto",id:"V.211"},{cat:"Serbatoio sovrapposto",id:"V.212"},{cat:"Serbatoio sovrapposto",id:"V.213"},
+  {cat:"Serbatoio sovrapposto",id:"V.214"},{cat:"Serbatoio sovrapposto",id:"V.215"},{cat:"Serbatoio sovrapposto",id:"V.216"},{cat:"Serbatoio sovrapposto",id:"V.217"},{cat:"Serbatoio sovrapposto",id:"V.218"},
+  {cat:"Serbatoio sempre-pieno",id:"V.219"},
+  {cat:"Filtro rotativo sotto vuoto CADALPE",id:"16885"},{cat:"Green Filter TMCI Padovan",id:"G12"},
+  {cat:"Master inox 40x40 TMCI Padovan",id:"90012532-0/001"},{cat:"Filtro Tangenziale fibra cava",id:"MFTC"},
+  {cat:"Microfiltrazione dell'acqua",id:"C021601030"},{cat:"Ultrafiltrazione dell'acqua",id:"C021601021"},
+  {cat:"Pompa Caterina",id:"C40.0420R"},{cat:"Pompa Francesca",id:"F10.1920R"},{cat:"Pompa Francesca",id:"F08.4290R"},
+  {cat:"Pompa volumetrica a lobi B220-3200",id:"B220-3200"},{cat:"Pompa peristaltica DF",id:"DF991673"},
+  {cat:"Pompa peristaltica DF",id:"DF991672"},{cat:"Pompa peristaltica DF",id:"DF991671"},
+  {cat:"Pompa volumetrica a vite eccentrica",id:"36277"},{cat:"Pompe volumetriche Amos",id:"1957-1-A"},
+  {cat:"Pompe volumetriche Amos",id:"1957-1-B"},{cat:"Stabilizzazione vini mediante resine",id:"29016"},
+  {cat:"Lavaggio barriques",id:"020174"},{cat:"Pressa JP320",id:"10407768"},{cat:"Pressa MO300",id:"2083M"},
+  {cat:"Pressa VS 150",id:"13150S02"},{cat:"Pressa PRM100",id:"NF.2557"},{cat:"Diraspa Pigiatrice",id:"DP5 KC"},
+  {cat:"Diraspa Pigiatrice",id:"TT"},{cat:"Canaletta con coclea",id:"21004"},{cat:"Canaletta con coclea",id:"21005"},
+  {cat:"Canaletta con coclea",id:"21006"},{cat:"Canaletta con coclea",id:"21007"},{cat:"Canaletta con coclea",id:"21008"},
+  {cat:"Canaletta con coclea",id:"21009"},{cat:"Nastro Raspi 12000x800",id:"21010"},{cat:"Nastro Raspi 21000x801",id:"21010b"},
+];
+
+let selImp=null, selTipoVal=null;
+
+function initDate(){
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  document.getElementById('inData').value=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+  document.getElementById('inOra').value=pad(now.getHours())+':'+pad(now.getMinutes());
+  document.getElementById('topDate').textContent=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
+}
+function fmtData(el){
+  let v=el.value.replace(/\D/g,'');
+  if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+  if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5);
+  el.value=v.slice(0,10);
+}
+function fmtOra(el){
+  let v=el.value.replace(/\D/g,'');
+  if(v.length>2)v=v.slice(0,2)+':'+v.slice(2);
+  el.value=v.slice(0,5);
+}
+function filterImp(){
+  const q=document.getElementById('impSearch').value.toLowerCase().trim();
+  const res=q?IMPIANTI.filter(i=>i.cat.toLowerCase().includes(q)||i.id.toLowerCase().includes(q)):IMPIANTI.slice(0,30);
+  const list=document.getElementById('impList');
+  list.innerHTML=res.slice(0,40).map(i=>`<div class="imp-item" onclick="pickImp('${i.cat.replace(/'/g,"\\'")}','${i.id.replace(/'/g,"\\'")}')"><div>${i.cat}</div><div class="imp-cat">${i.id}</div></div>`).join('');
+  list.classList.add('open');
+}
+function openList(){filterImp();}
+function pickImp(cat,id){
+  selImp={cat,id};
+  document.getElementById('impSelName').textContent=cat;
+  document.getElementById('impSelId').textContent=id;
+  document.getElementById('impSelectedWrap').style.display='block';
+  document.getElementById('impSearchWrap').style.display='none';
+  document.getElementById('errImp').style.display='none';
+}
+function clearImp(){
+  selImp=null;
+  document.getElementById('impSelectedWrap').style.display='none';
+  document.getElementById('impSearchWrap').style.display='block';
+  document.getElementById('impSearch').value='';
+  document.getElementById('impList').classList.remove('open');
+}
+function selTipo(btn){
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.className='tipo-btn');
+  selTipoVal=btn.dataset.tipo;
+  btn.className='tipo-btn sel-'+selTipoVal;
+  document.getElementById('errTipo').style.display='none';
+}
+function countChars(){
+  document.getElementById('charCount').textContent=document.getElementById('taDesc').value.length;
+}
+function validate(){
+  let ok=true;
+  const hide=id=>{document.getElementById(id).style.display='block';};
+  const show=id=>{document.getElementById(id).style.display='none';};
+  if(!document.getElementById('selOp').value){document.getElementById('selOp').classList.add('err-border');hide('errOp');ok=false;}
+  else{document.getElementById('selOp').classList.remove('err-border');show('errOp');}
+  const d=document.getElementById('inData').value,o=document.getElementById('inOra').value;
+  const dataOk=/^\d{2}\/\d{2}\/\d{4}$/.test(d)&&/^\d{2}:\d{2}$/.test(o);
+  document.getElementById('inData').classList.toggle('err-border',!dataOk);
+  document.getElementById('inOra').classList.toggle('err-border',!dataOk);
+  dataOk?show('errData'):hide('errData'); if(!dataOk)ok=false;
+  if(!selImp){hide('errImp');ok=false;}else{show('errImp');}
+  if(!selTipoVal){hide('errTipo');ok=false;}else{show('errTipo');}
+  const desc=document.getElementById('taDesc').value.trim();
+  if(desc.length<10){document.getElementById('taDesc').classList.add('err-border');hide('errDesc');ok=false;}
+  else{document.getElementById('taDesc').classList.remove('err-border');show('errDesc');}
+  const ore=parseInt(document.getElementById('inOre').value||'0');
+  const min=parseInt(document.getElementById('selMin').value);
+  const tempoOk=(ore*60+min)>=15;
+  document.getElementById('inOre').classList.toggle('err-border',!tempoOk);
+  tempoOk?show('errTempo'):hide('errTempo'); if(!tempoOk)ok=false;
+  return ok;
+}
+function setLoading(on){
+  document.getElementById('btnSubmit').disabled=on;
+  document.getElementById('spinner').style.display=on?'block':'none';
+  document.getElementById('btnLabel').textContent=on?'Salvataggio in corso...':'💾 Registra intervento';
+  document.getElementById('errorBox').style.display='none';
+}
+async function submitForm(){
+  if(!validate())return;
+  const TLABEL={ord:'Ordinaria/Programmata',str:'Straordinaria/Guasto',pul:'Pulizia/Sanificazione',ctrl:'Controllo/Ispezione',sost:'Sostituzione componenti'};
+  const ore=parseInt(document.getElementById('inOre').value||'0');
+  const min=parseInt(document.getElementById('selMin').value);
+  const payload={
+    operatore:document.getElementById('selOp').value,
+    data:document.getElementById('inData').value,
+    ora:document.getElementById('inOra').value,
+    impianto:selImp.cat,
+    codice:selImp.id,
+    tipo:TLABEL[selTipoVal],
+    descrizione:document.getElementById('taDesc').value.trim(),
+    tempoTotaleMin:ore*60+min,
+    note:document.getElementById('taNote').value.trim(),
+    igieneRipristinata:document.getElementById('chkIgiene').checked?'Sì':'No'
+  };
+  setLoading(true);
+  try{
+    await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+    const igiene=document.getElementById('chkIgiene').checked;
+    const igieneHtml=igiene
+      ?'<span style="color:#27500A">&#10003; Condizioni igienico-sanitarie ripristinate</span>'
+      :'<span style="color:#854F0B">&#8212; Ripristino igienico non dichiarato</span>';
+    document.getElementById('successDetail').innerHTML=
+      `<strong>${payload.operatore}</strong><br>`+
+      `${payload.impianto} (${payload.codice})<br>`+
+      `${payload.tipo}<br>`+
+      `${payload.data} ${payload.ora} &mdash; ${ore}h ${min>0?min+'min':'00min'}<br><br>`+
+      igieneHtml;
+    document.getElementById('formBody').style.display='none';
+    document.getElementById('successScreen').style.display='flex';
+  }catch(err){
+    document.getElementById('errorBox').style.display='block';
+  }finally{
+    setLoading(false);
+  }
+}
+function resetForm(){
+  document.getElementById('formBody').style.display='flex';
+  document.getElementById('successScreen').style.display='none';
+  document.getElementById('selOp').value='';
+  clearImp();
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.className='tipo-btn');
+  selTipoVal=null;
+  document.getElementById('taDesc').value='';
+  document.getElementById('charCount').textContent='0';
+  document.getElementById('inOre').value='';
+  document.getElementById('selMin').value='0';
+  document.getElementById('taNote').value='';
+  document.getElementById('chkIgiene').checked=false;
+  document.getElementById('errorBox').style.display='none';
+  initDate();
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#impSearchWrap')&&!e.target.closest('#impSelectedWrap'))
+    document.getElementById('impList').classList.remove('open');
+});
+initDate();
+</script>
+</body>
+</html>

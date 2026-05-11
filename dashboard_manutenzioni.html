@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Manutenzioni</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f0ede8;min-height:100vh;color:#1a1a1a;}
+.topbar{background:#8B1A1A;padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.topbar svg{color:#fff;flex-none;}
+.topbar-title{color:#fff;font-size:16px;font-weight:600;flex:1;}
+.topbar-sub{color:rgba(255,255,255,0.7);font-size:12px;}
+.btn-refresh{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:7px 14px;border-radius:6px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit;}
+.btn-refresh:hover{background:rgba(255,255,255,0.25);}
+.main{padding:20px 24px;max-width:1300px;margin:0 auto;}
+
+/* METRICHE */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.metric{background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.metric-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
+.metric-value{font-size:26px;font-weight:600;color:#1a1a1a;}
+.metric-sub{font-size:11px;color:#aaa;margin-top:3px;}
+
+/* FILTRI */
+.filters{background:#fff;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.filter-group{display:flex;flex-direction:column;gap:4px;}
+.filter-group label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;}
+.filter-group select,.filter-group input{font-size:13px;padding:7px 10px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#1a1a1a;min-width:140px;font-family:inherit;}
+.filter-group select:focus,.filter-group input:focus{outline:none;border-color:#8B1A1A;}
+.btn-reset{padding:7px 14px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#666;font-size:13px;cursor:pointer;font-family:inherit;height:35px;align-self:flex-end;}
+.btn-export{padding:7px 14px;border:none;border-radius:7px;background:#8B1A1A;color:#fff;font-size:13px;cursor:pointer;font-family:inherit;height:35px;align-self:flex-end;margin-left:auto;}
+
+/* TABS IMPIANTO */
+.section-title{font-size:13px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;}
+.tabs-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.tab{padding:7px 14px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.tab:hover{border-color:#8B1A1A;color:#8B1A1A;}
+.tab.active{background:#8B1A1A;border-color:#8B1A1A;color:#fff;}
+.tab .tab-count{display:inline-block;background:rgba(0,0,0,0.12);border-radius:10px;padding:1px 6px;margin-left:5px;font-size:11px;}
+.tab.active .tab-count{background:rgba(255,255,255,0.25);}
+
+/* TABELLA */
+.table-card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06);overflow:hidden;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;padding:10px 12px;border-bottom:1px solid #f0ede8;text-align:left;white-space:nowrap;background:#faf9f7;}
+tbody tr{border-bottom:1px solid #f5f3f0;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#faf9f7;}
+tbody td{padding:11px 12px;vertical-align:top;line-height:1.4;}
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.badge-ord{background:#E6F1FB;color:#0C447C;}
+.badge-str{background:#FCEBEB;color:#791F1F;}
+.badge-str-bold{background:#FCEBEB;color:#791F1F;font-weight:700;}
+.badge-pul{background:#EAF3DE;color:#27500A;}
+.badge-ctrl{background:#FAEEDA;color:#633806;}
+.badge-sost{background:#EEEDFE;color:#3C3489;}
+.igiene-si{color:#27500A;font-weight:500;}
+.igiene-no{color:#854F0B;}
+.tempo-cell{white-space:nowrap;color:#555;}
+.empty{padding:32px;text-align:center;color:#aaa;font-size:13px;}
+.loading{padding:32px;text-align:center;color:#aaa;font-size:13px;}
+.error-msg{padding:20px;background:#FCEBEB;color:#791F1F;font-size:13px;border-radius:8px;margin-bottom:16px;display:none;}
+.table-footer{padding:10px 14px;font-size:12px;color:#aaa;border-top:1px solid #f0ede8;background:#faf9f7;}
+
+/* STATO CARICAMENTO */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:-3px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:700px){
+  .metrics{grid-template-columns:1fr 1fr;}
+  .main{padding:14px;}
+  .topbar{padding:12px 14px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+  <div>
+    <div class="topbar-title">Dashboard Manutenzioni</div>
+    <div class="topbar-sub">Cantina Cooperativa Vignaioli del Morellino di Scansano</div>
+  </div>
+  <button class="btn-refresh" onclick="loadData()">
+    <span id="refreshIcon">↻</span> Aggiorna
+  </button>
+</div>
+
+<div class="main">
+  <div class="error-msg" id="errorMsg">⚠️ Impossibile caricare i dati. Controlla la connessione e riprova.</div>
+
+  <!-- METRICHE -->
+  <div class="metrics" id="metrics">
+    <div class="metric"><div class="metric-label">Interventi totali</div><div class="metric-value" id="mTot">—</div><div class="metric-sub" id="mPeriodo">caricamento...</div></div>
+    <div class="metric"><div class="metric-label">Straordinari / Guasti</div><div class="metric-value" id="mStr">—</div><div class="metric-sub" id="mStrPct">—</div></div>
+    <div class="metric"><div class="metric-label">Ore lavorate</div><div class="metric-value" id="mOre">—</div><div class="metric-sub">tempo totale manutenzione</div></div>
+    <div class="metric"><div class="metric-label">Igiene non dichiarata</div><div class="metric-value" id="mIgiene">—</div><div class="metric-sub">interventi senza conferma</div></div>
+  </div>
+
+  <!-- FILTRI -->
+  <div class="filters">
+    <div class="filter-group">
+      <label>Operatore</label>
+      <select id="fOp" onchange="applyFilters()"><option value="">Tutti</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Tipo intervento</label>
+      <select id="fTipo" onchange="applyFilters()"><option value="">Tutti</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Da data</label>
+      <input type="date" id="fDa" onchange="applyFilters()">
+    </div>
+    <div class="filter-group">
+      <label>A data</label>
+      <input type="date" id="fA" onchange="applyFilters()">
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">✕ Reset</button>
+    <button class="btn-export" onclick="exportCSV()">⬇ Esporta CSV</button>
+  </div>
+
+  <!-- TABS PER CATEGORIA IMPIANTO -->
+  <div class="section-title">Filtra per categoria impianto</div>
+  <div class="tabs-wrap" id="tabs"></div>
+
+  <!-- TABELLA -->
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:90px">Data</th>
+            <th style="width:60px">Ora</th>
+            <th style="width:110px">Operatore</th>
+            <th style="width:160px">Impianto</th>
+            <th style="width:60px">Codice</th>
+            <th style="width:130px">Tipo</th>
+            <th>Descrizione</th>
+            <th style="width:80px">Tempo</th>
+            <th style="width:80px">Igiene</th>
+            <th style="width:110px">Note</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="10" class="loading">Caricamento dati...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer" id="tableFooter"></div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwy7-MPGBoov2J2xIoOvKNtTbLQI7rQd4htwkXrCyoJADqTZ8iovewGhEmfkNPaSDXkkA/exec';
+
+// Categorie impianto per raggruppamento tab
+const CATEGORIE = [
+  { label: 'Tutti', match: null },
+  { label: 'Vinificatori/Serbatoi', match: ['Vinificatore/Serbatoio','Serbatoio feccia','Serbatoio vetroresina','Serbatoio sempre-pieno','Serbatoio in legno','Serbatoio sovrapposto','Autoclave'] },
+  { label: 'Vinif. PuntaRossa', match: ['Vinificatore PuntaRossa'] },
+  { label: 'Vinif. RotoCap', match: ['Vinificatore RotoCap'] },
+  { label: 'Vinif. AirMix', match: ['Vinificatore AirMix'] },
+  { label: 'Filtri', match: ['Filtro rotativo sotto vuoto CADALPE','Green Filter TMCI Padovan','Master inox 40x40 TMCI Padovan','Filtro Tangenziale fibra cava','Microfiltrazione dell\'acqua','Ultrafiltrazione dell\'acqua'] },
+  { label: 'Pompe', match: ['Pompa Caterina','Pompa Francesca','Pompa volumetrica a lobi B220-3200','Pompa peristaltica DF','Pompa volumetrica a vite eccentrica','Pompe volumetriche Amos'] },
+  { label: 'Presse', match: ['Pressa JP320','Pressa MO300','Pressa VS 150','Pressa PRM100'] },
+  { label: 'Linea vendemmia', match: ['Diraspa Pigiatrice','Canaletta con coclea','Nastro Raspi 12000x800','Nastro Raspi 21000x801'] },
+  { label: 'Altro', match: ['Stabilizzazione vini mediante resine','Lavaggio barriques'] },
+];
+
+const TIPO_MAP = {
+  'Ordinaria/Programmata':   'badge-ord',
+  'Straordinaria/Guasto':    'badge-str',
+  'Pulizia/Sanificazione':   'badge-pul',
+  'Controllo/Ispezione':     'badge-ctrl',
+  'Sostituzione componenti': 'badge-sost',
+};
+
+let allRows = [];
+let filteredRows = [];
+let activeTab = 0;
+
+async function loadData() {
+  const icon = document.getElementById('refreshIcon');
+  icon.innerHTML = '<span class="spin"></span>';
+  document.getElementById('errorMsg').style.display = 'none';
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const json = await res.json();
+    if (json.result !== 'ok') throw new Error(json.message);
+    allRows = json.rows.map(r => ({
+      ...r,
+      dataISO: parseDate(r.data),
+    }));
+    buildFilters();
+    buildTabs();
+    applyFilters();
+  } catch(e) {
+    document.getElementById('errorMsg').style.display = 'block';
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="10" class="empty">Errore nel caricamento.</td></tr>';
+  }
+  icon.textContent = '↻';
+}
+
+function parseDate(s) {
+  if (!s) return '';
+  // formato gg/mm/aaaa
+  const p = String(s).split('/');
+  if (p.length === 3) return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  // prova come stringa ISO o data Google
+  try { const d = new Date(s); return d.toISOString().slice(0,10); } catch(e){ return ''; }
+}
+
+function buildFilters() {
+  const ops   = [...new Set(allRows.map(r=>r.operatore).filter(Boolean))].sort();
+  const tipi  = [...new Set(allRows.map(r=>r.tipo).filter(Boolean))].sort();
+  const fill  = (id, vals) => {
+    const s = document.getElementById(id);
+    const cur = s.value;
+    s.innerHTML = '<option value="">Tutti</option>';
+    vals.forEach(v => { const o=document.createElement('option'); o.value=v; o.textContent=v; s.appendChild(o); });
+    s.value = cur;
+  };
+  fill('fOp', ops);
+  fill('fTipo', tipi);
+}
+
+function buildTabs() {
+  const wrap = document.getElementById('tabs');
+  wrap.innerHTML = '';
+  CATEGORIE.forEach((cat, i) => {
+    const count = cat.match === null
+      ? allRows.length
+      : allRows.filter(r => cat.match.includes(r.impianto)).length;
+    if (count === 0 && i > 0) return;
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (i === activeTab ? ' active' : '');
+    btn.innerHTML = cat.label + `<span class="tab-count">${count}</span>`;
+    btn.onclick = () => { activeTab = i; buildTabs(); applyFilters(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function applyFilters() {
+  const op   = document.getElementById('fOp').value;
+  const tipo = document.getElementById('fTipo').value;
+  const da   = document.getElementById('fDa').value;
+  const a    = document.getElementById('fA').value;
+  const cat  = CATEGORIE[activeTab];
+
+  filteredRows = allRows.filter(r => {
+    if (op   && r.operatore !== op)   return false;
+    if (tipo && r.tipo !== tipo)       return false;
+    if (da   && r.dataISO < da)        return false;
+    if (a    && r.dataISO > a)         return false;
+    if (cat.match !== null && !cat.match.includes(r.impianto)) return false;
+    return true;
+  });
+
+  filteredRows.sort((a,b) => {
+    const d = b.dataISO.localeCompare(a.dataISO);
+    return d !== 0 ? d : (b.ora||'').localeCompare(a.ora||'');
+  });
+
+  renderTable();
+  renderMetrics();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  if (!filteredRows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">Nessun intervento trovato con i filtri selezionati.</td></tr>';
+    document.getElementById('tableFooter').textContent = '';
+    return;
+  }
+  tbody.innerHTML = filteredRows.map(r => {
+    const badgeCls = TIPO_MAP[r.tipo] || 'badge-ord';
+    const tempoH   = Math.floor((r.tempoMin||0)/60);
+    const tempoM   = (r.tempoMin||0)%60;
+    const tempoStr = tempoH > 0 ? tempoH+'h '+(tempoM>0?tempoM+'m':'') : (tempoM>0?tempoM+'m':'—');
+    const igieneHtml = r.igiene === 'Sì'
+      ? '<span class="igiene-si">✓ Sì</span>'
+      : '<span class="igiene-no">— No</span>';
+    const dataStr = r.data || '—';
+    return `<tr>
+      <td>${dataStr}</td>
+      <td>${r.ora||'—'}</td>
+      <td>${r.operatore||'—'}</td>
+      <td>${r.impianto||'—'}</td>
+      <td style="font-size:11px;color:#888;">${r.codice||'—'}</td>
+      <td><span class="badge ${badgeCls}">${r.tipo||'—'}</span></td>
+      <td style="max-width:320px;font-size:12px;color:#333;">${r.descrizione||'—'}</td>
+      <td class="tempo-cell">${tempoStr}</td>
+      <td>${igieneHtml}</td>
+      <td style="font-size:11px;color:#888;">${r.note||''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tableFooter').textContent =
+    filteredRows.length + ' intervento' + (filteredRows.length !== 1 ? 'i' : '') + ' visualizzat' + (filteredRows.length !== 1 ? 'i' : 'o');
+}
+
+function renderMetrics() {
+  const tot  = filteredRows.length;
+  const str  = filteredRows.filter(r => r.tipo === 'Straordinaria/Guasto').length;
+  const min  = filteredRows.reduce((s,r) => s + (parseInt(r.tempoMin)||0), 0);
+  const ore  = Math.floor(min/60);
+  const igNo = filteredRows.filter(r => r.igiene !== 'Sì').length;
+  document.getElementById('mTot').textContent   = tot;
+  document.getElementById('mStr').textContent   = str;
+  document.getElementById('mStrPct').textContent = tot ? Math.round(str/tot*100)+'% del totale' : '—';
+  document.getElementById('mOre').textContent   = ore + 'h ' + (min%60>0?(min%60)+'m':'');
+  document.getElementById('mIgiene').textContent = igNo;
+  document.getElementById('mPeriodo').textContent = tot > 0
+    ? 'nel periodo selezionato'
+    : 'nessun dato';
+}
+
+function resetFilters() {
+  document.getElementById('fOp').value   = '';
+  document.getElementById('fTipo').value = '';
+  document.getElementById('fDa').value   = '';
+  document.getElementById('fA').value    = '';
+  activeTab = 0;
+  buildTabs();
+  applyFilters();
+}
+
+function exportCSV() {
+  const hdr = ['Data','Ora','Operatore','Impianto','Codice','Tipo','Descrizione','Tempo (min)','Igiene ripristinata','Note'];
+  const lines = [hdr.join(';'), ...filteredRows.map(r => [
+    r.data, r.ora, r.operatore, r.impianto, r.codice, r.tipo,
+    '"'+(r.descrizione||'').replace(/"/g,'""')+'"',
+    r.tempoMin||0,
+    r.igiene||'',
+    '"'+(r.note||'').replace(/"/g,'""')+'"'
+  ].join(';'))];
+  const blob = new Blob(['\uFEFF'+lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'registro_manutenzioni_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+loadData();
+</script>
+</body>
+</html>
