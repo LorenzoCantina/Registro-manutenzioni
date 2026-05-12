@@ -101,6 +101,13 @@ tbody td{padding:11px 12px;vertical-align:top;line-height:1.4;}
 
   <!-- FILTRI -->
   <div class="filters">
+    <div class="filter-group" style="flex:1;min-width:200px;">
+      <label>Impianto / Codice</label>
+      <div style="position:relative;">
+        <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#aaa;pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="fImp" placeholder="Cerca nome o codice..." oninput="applyFilters()" style="padding-left:30px;min-width:200px;">
+      </div>
+    </div>
     <div class="filter-group">
       <label>Operatore</label>
       <select id="fOp" onchange="applyFilters()"><option value="">Tutti</option></select>
@@ -162,8 +169,8 @@ const CATEGORIE = [
   { label: 'Vinif. PuntaRossa', match: ['Vinificatore PuntaRossa'] },
   { label: 'Vinif. RotoCap', match: ['Vinificatore RotoCap'] },
   { label: 'Vinif. AirMix', match: ['Vinificatore AirMix'] },
-  { label: 'Filtri', match: ['Filtro rotativo sotto vuoto CADALPE','Green Filter TMCI Padovan','Master inox 40x40 TMCI Padovan','Filtro Tangenziale fibra cava','Microfiltrazione dell\'acqua','Ultrafiltrazione dell\'acqua'] },
-  { label: 'Pompe', match: ['Pompa Caterina','Pompa Francesca','Pompa volumetrica a lobi B220-3200','Pompa peristaltica DF','Pompa volumetrica a vite eccentrica','Pompe volumetriche Amos'] },
+  { label: 'Filtri', match: ['Filtro rotativo sotto vuoto CADALPE','Green Filter TMCI Padovan','Master inox 40x40 TMCI Padovan','Filtro Tangenziale fibra cava','Microfiltrazione dell\'acqua','Ultrafiltrazione dell\'acqua','Filtro a cartoni Padovan','Filtro a cartoni Velo','Filtro Housing vini rossi','Filtro Housing vini bianchi','Filtro Housing bib/dame','Filtro Housing singolo'] },
+  { label: 'Pompe', match: ['Pompa Caterina','Pompa Francesca','Pompa volumetrica a lobi B220-3200','Pompa peristaltica DF','Pompa volumetrica a vite eccentrica','Pompe volumetriche Amos','Pompa Manzini 300 hl/ora','Pompa Manzini 500 hl/ora'] },
   { label: 'Presse', match: ['Pressa JP320','Pressa MO300','Pressa VS 150','Pressa PRM100'] },
   { label: 'Linea vendemmia', match: ['Diraspa Pigiatrice','Canaletta con coclea','Nastro Raspi 12000x800','Nastro Raspi 21000x801'] },
   { label: 'Altro', match: ['Stabilizzazione vini mediante resine','Lavaggio barriques'] },
@@ -247,6 +254,7 @@ function applyFilters() {
   const tipo = document.getElementById('fTipo').value;
   const da   = document.getElementById('fDa').value;
   const a    = document.getElementById('fA').value;
+  const imp  = document.getElementById('fImp').value.toLowerCase().trim();
   const cat  = CATEGORIE[activeTab];
 
   filteredRows = allRows.filter(r => {
@@ -254,6 +262,7 @@ function applyFilters() {
     if (tipo && r.tipo !== tipo)       return false;
     if (da   && r.dataISO < da)        return false;
     if (a    && r.dataISO > a)         return false;
+    if (imp  && !r.impianto.toLowerCase().includes(imp) && !String(r.codice).toLowerCase().includes(imp)) return false;
     if (cat.match !== null && !cat.match.includes(r.impianto)) return false;
     return true;
   });
@@ -321,6 +330,7 @@ function resetFilters() {
   document.getElementById('fTipo').value = '';
   document.getElementById('fDa').value   = '';
   document.getElementById('fA').value    = '';
+  document.getElementById('fImp').value  = '';
   activeTab = 0;
   buildTabs();
   applyFilters();
